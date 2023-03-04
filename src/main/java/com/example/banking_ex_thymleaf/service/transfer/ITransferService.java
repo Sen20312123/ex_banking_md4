@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface ITransferService extends IGeneralService<Transfer> {
 
-//     BigDecimal getSumFeesAmount();
+     BigDecimal getSumFeesAmount();
 
 
 }

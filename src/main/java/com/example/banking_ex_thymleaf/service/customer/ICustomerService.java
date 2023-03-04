@@ -16,7 +16,9 @@ public interface ICustomerService extends IGeneralService<Customer> {
     List<Customer> findAllByDeletedIsFalse();
      Deposit deposit(Deposit deposit);
 
-     Withdraw withdraw(Withdraw withdraw);
+     Withdraw withdraw (Withdraw withdraw);
 
      Transfer transfer(Transfer transfer);
+
+    List<Customer> findAllByIdNotAndDeletedIsFalse(Long senderId);
 }

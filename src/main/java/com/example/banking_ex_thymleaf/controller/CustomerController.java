@@ -3,6 +3,7 @@ package com.example.banking_ex_thymleaf.controller;
 import com.example.banking_ex_thymleaf.model.Customer;
 import com.example.banking_ex_thymleaf.model.Deposit;
 import com.example.banking_ex_thymleaf.model.Transfer;
+import com.example.banking_ex_thymleaf.model.Withdraw;
 import com.example.banking_ex_thymleaf.service.customer.ICustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -26,7 +27,7 @@ public class CustomerController{
     @GetMapping
     public String showListPage(Model model) {
 
-        List<Customer> customers = customerService.findAll();
+        List<Customer> customers = customerService.findAllByDeletedIsFalse();
 
         model.addAttribute("customers", customers);
 
@@ -94,14 +95,21 @@ public class CustomerController{
         Optional<Customer> customerOptional = customerService.findById(id);
         if (!customerOptional.isPresent()) {
             model.addAttribute("error", true);
-            List<Customer> customers = customerService.findAllByDeletedIsFalse();
-            model.addAttribute("customers", customers);
+            model.addAttribute("message", "Customer Id invalid");
+            model.addAttribute("customer", new Customer());
             return "customer/list";
         } else {
             Customer customer = customerOptional.get();
+            if (customer.isDeleted()) {
+                model.addAttribute("error", true);
+                model.addAttribute("messageDelete", "This customer is suspended");
+            } else {
+                model.addAttribute("error", null);
+            }
             model.addAttribute("customer", customer);
-            return "customer/delete";
+
         }
+        return "customer/delete";
     }
 
     @PostMapping("/delete/{id}")
@@ -112,15 +120,16 @@ public class CustomerController{
         if (!customerOptional.isPresent()) {
             model.addAttribute("error", true);
             model.addAttribute("messageFail" ,"Not found customer" );
+            model.addAttribute("customer", customer);
         } else {
-            customer.setId(id);
-            customerService.delete(customer);
+            customer = customerOptional.get();
+            customer.setDeleted(true);
+            customerService.save(customer);
             model.addAttribute("success" , true);
             model.addAttribute("messageSuccess", "Delete customer success");
-            List<Customer> customers = customerService.findAllByDeletedIsFalse();
-            model.addAttribute("customers", customers);
+            model.addAttribute("customer", customer );
         }
-        return "customer/list";
+        return "redirect:/customers";
     }
 
     @GetMapping("/deposit/{id}")
@@ -177,9 +186,8 @@ public class CustomerController{
             model.addAttribute("messageFail" , "Not found customer");
             return "error/404";
         }
+        List<Customer> recipients = customerService.findAllByIdNotAndDeletedIsFalse(senderId);
         Customer sender = customerOptional.get();
-
-        List<Customer> recipients = customerService.findAllByIdNot(senderId);
         Transfer transfer = new Transfer();
         transfer.setSender(sender);
         model.addAttribute("recipients" , recipients);
@@ -189,6 +197,7 @@ public class CustomerController{
     @PostMapping("/transfer/{senderId}")
     public String doTransfer(@PathVariable Long senderId , @ModelAttribute Transfer transfer , Model model){
         Optional<Customer> senderOptional = customerService.findById(senderId);
+        List<Customer> recipients = customerService.findAllByIdNot(senderId);
         if(!senderOptional.isPresent()){
             model.addAttribute("error" ,true);
             model.addAttribute("messageFail" , "Not found sender");
@@ -200,9 +209,6 @@ public class CustomerController{
             model.addAttribute("messageFail" , "Not found recipient");
             return "error/404";
         }
-
-        List<Customer> recipients = customerService.findAllByIdNot(senderId);
-        model.addAttribute("recipients" , recipients);
 
         Customer sender = senderOptional.get();
         BigDecimal senderBalance = sender.getBalance();
@@ -252,8 +258,62 @@ public class CustomerController{
 
             model.addAttribute("success", true);
             model.addAttribute("messageSuccess", "Successful transfer transaction");
+            model.addAttribute("recipients" , recipients);
         }
         return "customer/transfer";
+    }
+
+    @GetMapping("withdraw/{id}")
+    public String showWithdraw(@PathVariable Long id, Model model) {
+
+        Optional<Customer> customerOptional = customerService.findById(id);
+
+        if (!customerOptional.isPresent()) {
+            model.addAttribute("error", true);
+            model.addAttribute("messages", "Customer not found");
+        } else {
+            Customer customer = customerOptional.get();
+            Withdraw withdraw = new Withdraw();
+            withdraw.setCustomer(customer);
+            model.addAttribute("withdraw", withdraw);
+
+        }
+        return "customer/withdraw";
+    }
+
+    @PostMapping("/withdraw/{customerId}")
+    public String doWithdraw(@PathVariable Long customerId, @ModelAttribute Withdraw withdraw, Model model) {
+
+        Optional<Customer> customerOptional = customerService.findById(customerId);
+
+        if (!customerOptional.isPresent()) {
+            model.addAttribute("error", true);
+        } else {
+            Customer customer = customerOptional.get();
+            BigDecimal balance = customer.getBalance();
+            BigDecimal withdrawTransactionAmount = withdraw.getTransactionAmount();
+            if (withdrawTransactionAmount.compareTo(balance) > 0) {
+                model.addAttribute("error", true);
+                model.addAttribute("messages", "insufficient balance");
+            } else if (withdrawTransactionAmount.compareTo(new BigDecimal(100)) < 0) {
+                model.addAttribute("error", true);
+                model.addAttribute("messages", "withdrawal amount is not less than 100");
+            } else if (withdrawTransactionAmount.compareTo(new BigDecimal(1000000000)) > 0) {
+                model.addAttribute("error", true);
+                model.addAttribute("messages", "withdrawal amount is not more than 1000000000");
+            } else {
+                withdraw.setCustomer(customer);
+                withdraw.setTransactionAmount(withdrawTransactionAmount);
+                BigDecimal newBalance = balance.subtract(withdrawTransactionAmount);
+                customer.setBalance(newBalance);
+                customerService.withdraw(withdraw);
+                model.addAttribute("withdraw", withdraw);
+                model.addAttribute("customer" , customer);
+                model.addAttribute("success", true);
+                model.addAttribute("messages", "Withdraw successful");
+            }
+        }
+        return "customer/withdraw";
     }
 
 }

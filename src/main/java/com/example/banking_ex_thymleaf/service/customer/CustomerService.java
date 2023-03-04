@@ -77,6 +77,12 @@ public class CustomerService implements ICustomerService{
 
         return transfer;
     }
+
+    @Override
+    public List<Customer> findAllByIdNotAndDeletedIsFalse(Long id) {
+        return customerRepository.findAllByIdNotAndDeletedIsFalse(id);
+    }
+
     @Override
     public Optional<Customer> findById(Long id) {
         return customerRepository.findById(id);

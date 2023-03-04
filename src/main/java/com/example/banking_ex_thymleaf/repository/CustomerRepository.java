@@ -21,4 +21,9 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     List<Customer> findAllByIdNot(Long id);
     List<Customer> findAllByDeletedIsFalse();
 
+    List<Customer> findAllByIdNotAndDeletedIsFalse(Long id);
+
+    @Modifying
+    @Query("UPDATE Customer As c Set c.balance = c.balance - :transactionAmount WHERE c.id = :customerId")
+    void decrementBalance(@Param("customerId") Long customerId, @Param("transactionAmount")BigDecimal transactionAmount);
 }

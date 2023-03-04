@@ -9,6 +9,6 @@ import java.math.BigDecimal;
 
 @Repository
 public interface TransferRepository extends JpaRepository<Transfer, Long> {
-//    @Query("SELECT SUM(t.feesAmount) FROM Transfer AS t")
-//    BigDecimal getSumFeesAmount();
+    @Query("SELECT SUM(t.feesAmount) FROM Transfer AS t")
+    BigDecimal getSumFeesAmount();
 }

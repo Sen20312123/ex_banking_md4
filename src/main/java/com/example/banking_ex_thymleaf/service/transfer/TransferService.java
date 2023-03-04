@@ -17,11 +17,11 @@ public class TransferService implements ITransferService {
     @Autowired
     private TransferRepository transferRepository;
     
-//
-//    @Override
-//    public BigDecimal getSumFeesAmount() {
-//        return transferRepository.getSumFeesAmount();
-//    }
+
+    @Override
+    public BigDecimal getSumFeesAmount() {
+        return transferRepository.getSumFeesAmount();
+    }
 
     @Override
     public List<Transfer> findAll() {
