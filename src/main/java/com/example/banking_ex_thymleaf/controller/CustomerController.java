@@ -124,9 +124,11 @@ public class CustomerController{
             customerService.save(customer);
             model.addAttribute("success" , true);
             model.addAttribute("messageSuccessDelete", "Delete customer success");
-            model.addAttribute("customer", customer );
+            List<Customer> customers = customerService.findAllByDeletedIsFalse();
+
+            model.addAttribute("customers", customers);
         }
-        return "redirect:/customers";
+        return "customer/list";
     }
 
     @GetMapping("/deposit/{id}")
