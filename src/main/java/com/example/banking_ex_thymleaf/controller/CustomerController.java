@@ -94,7 +94,6 @@ public class CustomerController{
         Optional<Customer> customerOptional = customerService.findById(id);
         if (!customerOptional.isPresent()) {
             model.addAttribute("error", true);
-            model.addAttribute("message", "Customer Id invalid");
             model.addAttribute("customer", new Customer());
             return "customer/list";
         } else {
@@ -103,8 +102,7 @@ public class CustomerController{
                 model.addAttribute("error", true);
                 model.addAttribute("messageDelete", "This customer is suspended");
             } else {
-                model.addAttribute("success" , true);
-                model.addAttribute("messageSuccess", "Delete customer success");
+                model.addAttribute("errors", null);
             }
             model.addAttribute("customer", customer);
 
@@ -119,13 +117,13 @@ public class CustomerController{
 
         if (!customerOptional.isPresent()) {
             model.addAttribute("error", true);
-            model.addAttribute("messageFail" ,"Not found customer" );
             model.addAttribute("customer", customer);
         } else {
             customer = customerOptional.get();
             customer.setDeleted(true);
             customerService.save(customer);
-
+            model.addAttribute("success" , true);
+            model.addAttribute("messageSuccessDelete", "Delete customer success");
             model.addAttribute("customer", customer );
         }
         return "redirect:/customers";
