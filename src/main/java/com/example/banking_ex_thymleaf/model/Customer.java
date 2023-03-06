@@ -100,10 +100,17 @@ public class Customer extends BaseEntity implements Validator {
 
         if (fullName.length() == 0) {
             errors.rejectValue("fullName", "fullName.null");
+        } else {
+            if (fullName.length() < 4 || fullName.length() > 25) {
+                errors.rejectValue("fullName", "fullName.length");
+            }
         }
-
-        if (!email.matches("^[\\w]+@([\\w-]+\\.)+[\\w-]{2,6}$")) {
-            errors.rejectValue("email", "email.matches");
+        if (email.length() == 0) {
+            errors.rejectValue("email", "email.null");
+        } else {
+            if (!email.matches("^[\\w]+@([\\w-]+\\.)+[\\w-]{2,6}$")) {
+                errors.rejectValue("email", "email.matches");
+            }
         }
 
     }

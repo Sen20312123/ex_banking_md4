@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.Validator;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -104,7 +103,8 @@ public class CustomerController{
                 model.addAttribute("error", true);
                 model.addAttribute("messageDelete", "This customer is suspended");
             } else {
-                model.addAttribute("error", null);
+                model.addAttribute("success" , true);
+                model.addAttribute("messageSuccess", "Delete customer success");
             }
             model.addAttribute("customer", customer);
 
@@ -125,8 +125,7 @@ public class CustomerController{
             customer = customerOptional.get();
             customer.setDeleted(true);
             customerService.save(customer);
-            model.addAttribute("success" , true);
-            model.addAttribute("messageSuccess", "Delete customer success");
+
             model.addAttribute("customer", customer );
         }
         return "redirect:/customers";
